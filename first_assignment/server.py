@@ -58,23 +58,24 @@ while True:
                 sock.sendto("Name Added".encode(), addr)
 
         elif msg_type == "Name and message":
+            name, message_content = message.split(' ', 1)
 
-            # TODO: Check what to do if nameless user.
+            if name not in name_pool:
+                sock.sendto("Users need to sign up before sending messages".encode(), addr)
+                continue
+
             sender = find_sender(name_pool[name])
             if sender == "":
                 sock.sendto("Users need to sign up before sending messages".encode(), addr)
-                break
-            name, message_content = message.split(' ', 1)
-            print('received message:', name, addr)
-            if name not in name_pool:
-                sock.sendto("User doesn't exist".encode(), addr)
+                continue
 
-            elif name in name_pool:
-                
+            print('received message:', name, addr)
+
+            if name in name_pool:
                 sock.sendto(f"{sender}: {message_content}".encode(), name_pool[name])
                 sock.sendto("Message sent".encode(), addr)
                 print("message sent")
         else:
             raise ValueError("Invalid message format. Expected format: 'Name Message'")
-    except (ConnectionResetError, ValueError) as e:
+    except (ConnectionResetError, ValueError, KeyError) as e:
         print(f"Error: {e}")
